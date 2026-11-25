@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northwind Sales Review</title>
+<meta name="description" content="Three business questions about Northwind Traders' discounts, late shipments, and sales offices, answered from its 1996-1998 order data.">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --rule: #e1e0d9;
+    --accent: #2a78d6;
+    --accent-2: #eb6834;
+    --callout: #eef4fc;
+    --border: rgba(11, 11, 11, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #f0efec;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --rule: #2c2c2a;
+      --accent: #3987e5;
+      --accent-2: #d95926;
+      --callout: #16202c;
+      --border: rgba(255, 255, 255, 0.10);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --rule: #2c2c2a;
+    --accent: #3987e5;
+    --accent-2: #d95926;
+    --callout: #16202c;
+    --border: rgba(255, 255, 255, 0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 48px 16px 80px; }
+  header { margin-bottom: 40px; }
+  .eyebrow { color: var(--muted); font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 8px; }
+  h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; }
+  h3 { font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin: 28px 0 6px; }
+  p { margin: 0 0 12px; }
+  .lede { color: var(--ink-2); font-size: 18px; max-width: 68ch; }
+  a { color: var(--accent); }
+  nav.toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 28px 0 0; }
+  nav.toc a {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px;
+  }
+  nav.toc a:hover { border-color: var(--accent); }
+  nav.toc .num { color: var(--accent); font-weight: 700; font-size: 13px; }
+  nav.toc .q { display: block; font-weight: 600; margin: 2px 0 6px; line-height: 1.35; }
+  nav.toc .a { display: block; color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+  section.question { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--rule); }
+  .qnum { color: var(--accent); font-weight: 700; font-size: 14px; margin: 0 0 4px; }
+  figure { margin: 20px 0; }
+  figure img {
+    width: 100%; height: auto; display: block; border-radius: 10px;
+    border: 1px solid var(--border); background: #fcfcfb;
+  }
+  figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .table-wrap { overflow-x: auto; margin: 16px 0 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { padding: 8px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; }
+  th { color: var(--ink-2); font-weight: 600; background: var(--surface); }
+  th:first-child, td:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  td.hl { color: var(--accent-2); font-weight: 600; }
+  .note { color: var(--muted); font-size: 13px; }
+  .finding {
+    background: var(--callout); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+    padding: 14px 18px; margin: 20px 0;
+  }
+  .finding p:last-child { margin-bottom: 0; }
+  ul { padding-left: 20px; margin: 0 0 12px; }
+  li { margin-bottom: 6px; }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--ink-2); font-size: 14px; }
+  code { font-size: 0.9em; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="eyebrow">15.561 · Homework 3 · Northwind Traders, Jul 1996 – May 1998</p>
+  <h1>Where Northwind loses margin and misses deadlines</h1>
+  <p class="lede">An analysis of 830 orders and $1.27M in net revenue for Northwind's sales manager. Three questions cover how
+    the company discounts, ships, and sells, and each answer ends with a decision the manager can make.</p>
+  <nav class="toc" aria-label="Questions">
+    <a href="#discounts"><span class="num">Q1</span><span class="q">Do deeper discounts buy bigger orders?</span>
+      <span class="a">Hardly. Discounts of 15% and above account for 80% of discount dollars but lift order size about as much as 5% does.</span></a>
+    <a href="#shipping"><span class="num">Q2</span><span class="q">What drives late shipments, the shipper or the promise?</span>
+      <span class="a">The promise. Rush orders are late 18% of the time because they aren't dispatched any faster.</span></a>
+    <a href="#reps"><span class="num">Q3</span><span class="q">How do sales staff and offices compare, and does discounting help them sell?</span>
+      <span class="a">Seattle sells 2.1x as much per person as London while discounting less, to the same customers.</span></a>
+  </nav>
+</header>
+
+<!-- ============================== Q1 ============================== -->
+<section class="question" id="discounts">
+  <p class="qnum">Question 1</p>
+  <h2>Do deeper discounts buy bigger orders, or do they just give away revenue?</h2>
+
+  <h3>Why it matters</h3>
+  <p>Northwind gave away <strong>$88,666</strong> in discounts, 6.6% of the list value of everything it sold, and 46% of orders
+    had at least one discounted line. A discount pays for itself only if it brings extra volume. If a 25% discount
+    brings no more volume than a 5% discount, the extra 20 points are revenue given away for nothing.</p>
+
+  <h3>Approach</h3>
+  <ul>
+    <li>Analyzed all 2,155 order lines. Discounts are set per line at 0, 5, 10, 15, 20, or 25%. Eight lines carry
+      non-standard 1–6% discounts worth $13 in total and are left out of the chart.</li>
+    <li>Products sell in very different quantities (cheese vs. bottled beer), so raw quantities can't be compared across
+      products. Each line's quantity is compared with <em>the same product's</em> median quantity when sold at full price.
+      A value of 1.3x means the line was 30% larger than that product's typical full-price line.</li>
+    <li>The chart shows the median of that ratio at each discount level, with a 95% bootstrap interval
+      (2,000 resamples) to show how much the estimate could move by chance.</li>
+  </ul>
+
+  <figure>
+    <img src="figures/q1_discount_lift.png" alt="Dot plot of median relative order quantity by discount level: 0% is 1.00x, 5% is 1.25x, 10% is 1.20x, 15% is 1.33x, 20% is 1.29x, 25% is 1.46x. The 95% intervals of all discount levels overlap.">
+    <figcaption>Source: Orders Details sheet. Relative quantity = line quantity ÷ that product's median quantity on 0% lines.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Discount</th><th>Lines</th><th>Median qty</th><th>Relative qty (95% CI)</th><th>Discount given</th><th>Share of all discount $</th></tr></thead>
+      <tbody>
+        <tr><td>0%</td><td>1,317</td><td>18</td><td>1.00x</td><td>$0</td><td>0%</td></tr>
+        <tr><td>5%</td><td>185</td><td>20</td><td>1.25x (1.04–1.36)</td><td>$7,769</td><td>8.8%</td></tr>
+        <tr><td>10%</td><td>173</td><td>20</td><td>1.20x (1.00–1.40)</td><td>$10,167</td><td>11.5%</td></tr>
+        <tr><td>15%</td><td>157</td><td>21</td><td>1.33x (1.11–1.55)</td><td>$15,442</td><td class="hl">17.4%</td></tr>
+        <tr><td>20%</td><td>161</td><td>21</td><td>1.29x (1.11–1.50)</td><td>$22,295</td><td class="hl">25.1%</td></tr>
+        <tr><td>25%</td><td>154</td><td>25</td><td>1.46x (1.19–1.67)</td><td>$32,980</td><td class="hl">37.2%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Table: <code>outputs/q1_discount_levels.csv</code>.</p>
+
+  <div class="finding">
+    <h3 style="margin-top:0">Main finding</h3>
+    <p>Discounted lines are larger than full-price lines: about 1.25x the product's normal quantity. But the lift barely
+      grows with the size of the discount. A 5% line sells 1.25x, a 20% line 1.29x, and even 25% reaches only 1.46x,
+      and the intervals for every level overlap. Meanwhile, the 15–25% tiers account for <strong>80% of all discount
+      dollars</strong>.</p>
+  </div>
+
+  <h3>Business implication</h3>
+  <p>Cap standard discounts at 10% and require manager approval above that. If customers had bought the same quantities, capping
+    the 472 lines discounted above 10% would have kept about <strong>$36,000</strong> (2.9% of net revenue) in the business.
+    Treat that figure as an upper bound, because some customers would buy less without the deeper discount. A good first step is a
+    pilot with a few accounts.</p>
+  <p class="note">Caveat: this is observational data. Larger buyers may receive bigger discounts <em>because</em> they buy more,
+    which would make discounts look more effective than they are. That bias would strengthen the case for a cap, not weaken it.</p>
+</section>
+
+<!-- ============================== Q2 ============================== -->
+<section class="question" id="shipping">
+  <p class="qnum">Question 2</p>
+  <h2>What drives late shipments: the shipping company, or the deadlines we promise?</h2>
+
+  <h3>Why it matters</h3>
+  <p>A missed delivery date is a broken promise to a customer, and the obvious response is to blame or replace the shipping company.
+    Before negotiating with shippers, the manager needs to know whether lateness is a carrier problem or an internal one.</p>
+
+  <h3>Approach</h3>
+  <ul>
+    <li>Used the 809 shipped orders. The 21 orders placed between 8 Apr and 6 May 1998 had not shipped when the data
+      ends, so they can't yet be on time or late.</li>
+    <li>An order is <strong>late</strong> if <code>ShippedDate</code> is after <code>RequiredDate</code>. Note that
+      <code>ShippedDate</code> records when the order <em>left Northwind</em>, so lateness here comes from internal dispatch,
+      not carrier transit.</li>
+    <li>Compared late rates by the promised window (<code>RequiredDate − OrderDate</code>, which is always 14, 28, or 42 days)
+      and by shipper. Then looked at the full distribution of days from order to dispatch.</li>
+  </ul>
+
+  <figure>
+    <img src="figures/q2_late_rates.png" alt="Two bar charts of late-shipment rate. By promised window: 14-day rush orders 17.6% late (12 of 68), 28-day 3.7% (25 of 682), 42-day 0% (0 of 59). By shipper: Speedy Express 4.9%, United Package 5.1%, Federal Shipping 3.6%.">
+    <figcaption>Source: Orders sheet, shipped orders only (n = 809).</figcaption>
+  </figure>
+
+  <figure>
+    <img src="figures/q2_dispatch_times.png" alt="Histogram of days from order to dispatch. Most orders ship in 1 to 10 days, peaking at 7 days. About 12% take more than 14 days, stretching to 37 days, and every late order falls in that tail.">
+    <figcaption>Each bar is one day. Orange = order shipped after its required date.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Group</th><th>Orders</th><th>Late</th><th>Late rate</th><th>Median days to dispatch</th><th>90th pct. days</th><th>Median freight</th><th>Freight ÷ order value</th></tr></thead>
+      <tbody>
+        <tr><td>14-day (rush) promise</td><td>68</td><td>12</td><td class="hl">17.6%</td><td>7.5</td><td>22</td><td>$46.87</td><td>4.9%</td></tr>
+        <tr><td>28-day (standard) promise</td><td>682</td><td>25</td><td>3.7%</td><td>7</td><td>17</td><td>$39.37</td><td>5.0%</td></tr>
+        <tr><td>42-day (relaxed) promise</td><td>59</td><td>0</td><td>0.0%</td><td>7</td><td>19</td><td>$52.84</td><td>4.8%</td></tr>
+        <tr><td>Speedy Express</td><td>245</td><td>12</td><td>4.9%</td><td>7</td><td>18</td><td>$41.34</td><td>5.1%</td></tr>
+        <tr><td>United Package</td><td>315</td><td>16</td><td>5.1%</td><td>7</td><td>22</td><td>$44.17</td><td>4.7%</td></tr>
+        <tr><td>Federal Shipping</td><td>249</td><td>9</td><td>3.6%</td><td>6</td><td>12</td><td>$38.11</td><td>5.1%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Tables: <code>outputs/q2_by_promised_window.csv</code>, <code>outputs/q2_by_shipper.csv</code>.</p>
+
+  <div class="finding">
+    <h3 style="margin-top:0">Main finding</h3>
+    <p>Lateness is a dispatch problem, not a carrier problem. Rush orders are promised in 14 days but dispatched on the same
+      schedule as everything else (median 7.5 vs. 7 days), so <strong>17.6% of them are late, about 5x the 3.7% rate for
+      standard orders</strong>. The three shippers differ by only a few orders (3.6–5.1%; a difference this size could
+      easily be chance). Every one of the 37 late orders took at least 15 days to leave the warehouse. They come from a tail
+      of 96 orders (12%) that sit for 2–5 weeks.</p>
+  </div>
+
+  <h3>Business implication</h3>
+  <ul>
+    <li><strong>Give rush orders priority at dispatch</strong> (a separate queue or same-week pick), or stop promising
+      14 days until that exists. This alone targets a third of all late orders.</li>
+    <li><strong>Flag any order not dispatched within 10 days</strong> for follow-up. That flag would have covered 142 orders (18%),
+      including all 37 that ended up late, while there was still time to act.</li>
+    <li>Don't switch carriers to fix lateness. If anything, Federal Shipping has the lowest median freight charge, the shortest
+      dispatch tail (90th percentile 12 days), and the fewest late orders, which makes it the default choice for rush orders.</li>
+  </ul>
+</section>
+
+<!-- ============================== Q3 ============================== -->
+<section class="question" id="reps">
+  <p class="qnum">Question 3</p>
+  <h2>How do sales staff and offices compare, and does heavier discounting help them sell more?</h2>
+
+  <h3>Why it matters</h3>
+  <p>Nine people took orders, split between Seattle and London. Each one decides how much discount to give. If the
+    staff who discount most don't sell more, discount authority should be tightened. If one office lags, the manager
+    should find out why before setting targets.</p>
+
+  <h3>Approach</h3>
+  <ul>
+    <li>Credited each order's net revenue to the employee who took it, over the same 22-month window (every employee
+      took orders from July–August 1996 through April–May 1998).</li>
+    <li><strong>Discount rate</strong> = discount dollars given ÷ list value of that person's sales, so it measures depth of
+      discounting, not just how often a discount was given.</li>
+    <li>Checked whether the offices serve different markets. 77 of 89 customers bought from both offices, and both
+      offices' largest markets are the USA, Germany, Austria, and Brazil, so territory doesn't explain the gap.</li>
+    <li>Tenure isn't adjusted for. Everyone was hired before the data starts (1.6–4.3 years earlier), and London staff
+      are all more recent hires, so with nine people tenure can't be separated from office.</li>
+  </ul>
+
+  <figure>
+    <img src="figures/q3_discount_vs_revenue.png" alt="Scatter plot of discount rate versus net revenue for nine employees. Seattle staff, in blue, sit at 4.8 to 6.9% discount and $127K to $233K revenue. London staff, in orange, sit at 5.5 to 11.8% discount and $69K to $125K revenue. Robert King has the highest discount rate at 11.8%.">
+    <figcaption>Source: Orders, Orders Details, and Employees sheets.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Employee</th><th>Role</th><th>Office</th><th>Orders</th><th>Customers</th><th>Net revenue</th><th>Avg order</th><th>Discount rate</th><th>Late rate</th><th>Tenure at start (yrs)</th></tr></thead>
+      <tbody>
+        <tr><td>Margaret Peacock</td><td>Sales Rep</td><td>Seattle</td><td>156</td><td>75</td><td>$232,891</td><td>$1,493</td><td>6.9%</td><td>6.6%</td><td>3.2</td></tr>
+        <tr><td>Janet Leverling</td><td>Sales Rep</td><td>Seattle</td><td>127</td><td>63</td><td>$202,813</td><td>$1,597</td><td>4.8%</td><td>3.9%</td><td>4.3</td></tr>
+        <tr><td>Nancy Davolio</td><td>Sales Rep</td><td>Seattle</td><td>123</td><td>65</td><td>$192,108</td><td>$1,562</td><td>5.0%</td><td>1.7%</td><td>4.2</td></tr>
+        <tr><td>Andrew Fuller</td><td>VP, Sales</td><td>Seattle</td><td>96</td><td>59</td><td>$166,538</td><td>$1,735</td><td>6.3%</td><td>4.3%</td><td>3.9</td></tr>
+        <tr><td>Laura Callahan</td><td>Inside Sales Coord.</td><td>Seattle</td><td>104</td><td>56</td><td>$126,862</td><td>$1,220</td><td>4.8%</td><td>4.0%</td><td>2.3</td></tr>
+        <tr><td>Robert King</td><td>Sales Rep</td><td>London</td><td>72</td><td>45</td><td>$124,568</td><td>$1,730</td><td class="hl">11.8%</td><td>5.8%</td><td>2.5</td></tr>
+        <tr><td>Anne Dodsworth</td><td>Sales Rep</td><td>London</td><td>43</td><td>29</td><td>$77,308</td><td>$1,798</td><td>6.8%</td><td>9.5%</td><td>1.6</td></tr>
+        <tr><td>Michael Suyama</td><td>Sales Rep</td><td>London</td><td>67</td><td>44</td><td>$73,913</td><td>$1,103</td><td>5.5%</td><td>4.6%</td><td>2.7</td></tr>
+        <tr><td>Steven Buchanan</td><td>Sales Manager</td><td>London</td><td>42</td><td>29</td><td>$68,792</td><td>$1,638</td><td class="hl">9.0%</td><td>2.4%</td><td>2.7</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Office</th><th>People</th><th>Orders</th><th>Net revenue</th><th>Revenue per person</th><th>Discount rate</th></tr></thead>
+      <tbody>
+        <tr><td>Seattle (US)</td><td>5</td><td>606</td><td>$921,211</td><td>$184,242</td><td>5.7%</td></tr>
+        <tr><td>London (UK)</td><td>4</td><td>224</td><td>$344,582</td><td class="hl">$86,145</td><td class="hl">8.9%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Tables: <code>outputs/q3_sales_reps.csv</code>, <code>outputs/q3_offices.csv</code>.</p>
+
+  <div class="finding">
+    <h3 style="margin-top:0">Main finding</h3>
+    <p>Discounting doesn't go with selling more. Across the nine employees the rank correlation between discount rate and
+      revenue is slightly negative (−0.38). The gap is between offices: <strong>Seattle produces $184K per person at a 5.7% discount
+      rate; London produces $86K per person at 8.9%</strong>, selling to the same customers. Comparing sales reps only, London's three
+      average $92K against Seattle's three at $209K. Robert King is London's top seller but gives the deepest discounts in the company
+      (11.8%). Peacock, Leverling, and Davolio sell nearly twice as much at 4.8–6.9%.</p>
+  </div>
+
+  <h3>Business implication</h3>
+  <ul>
+    <li><strong>Apply the Q1 discount cap to the whole team,</strong> starting with London, which gave away $33K, or 8.9% of
+      list value, against 5.7% in Seattle.</li>
+    <li><strong>Review how London sells before setting its targets.</strong> Pair London reps with Seattle's top three on shared
+      accounts. Because the customers are the same, the difference is likely in coverage and follow-up, not market.</li>
+    <li>Don't read the London gap as a performance verdict yet. London staff are newer, and the manager (Buchanan) also runs
+      the office. Track both offices on revenue per rep <em>and</em> discount rate for two more quarters.</li>
+  </ul>
+</section>
+
+<!-- ============================== Notes ============================== -->
+<section class="question" id="method">
+  <h2>Data and method notes</h2>
+  <ul>
+    <li><strong>Source:</strong> the course's <em>Northwind Database.xlsx</em> (8 sheets): 830 orders, 2,155 order lines, 91 customers,
+      77 products, 9 employees, 3 shippers.</li>
+    <li><strong>Net revenue</strong> = <code>UnitPrice × Quantity × (1 − Discount)</code> from the Orders Details sheet, giving
+      $1,265,793 in total. It uses the price on the order line, not the current list price in the Product sheet, which differs
+      on 658 lines because prices rose over time.</li>
+    <li><strong>Discounts</strong> are stored as imprecise floats (0.05 reads as 0.0500000007) and are rounded to whole
+      percents. This changes total revenue by less than one cent.</li>
+    <li><strong>Time window:</strong> 4 Jul 1996 – 6 May 1998. 1998 is a partial year, so no figure on this page compares
+      calendar-year totals.</li>
+    <li><strong>Checks:</strong> every order line matches a product, every order has lines, and order totals add up to line totals.
+      <code>verify_numbers.py</code> recomputes the headline figures straight from the spreadsheet with a separate library
+      (openpyxl) and checks that they match.</li>
+  </ul>
+</section>
+
+<footer>
+  <p><strong>Reproduce everything on this page:</strong> code, data, and instructions are in the
+    <a href="https://github.com/lichengsu/northwind-analysis">GitHub repository</a>. Run <code>python run_all.py</code> to regenerate every figure and table.</p>
+  <p>All code is in Python. Analysis built with Claude Code as a coding assistant; questions, checks, and conclusions are the author's.</p>
+</footer>
+
+</main>
+</body>
+</html>

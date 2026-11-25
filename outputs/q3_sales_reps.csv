@@ -1,0 +1,10 @@
+EmployeeID,Name,Title,Office,HireDate,Orders,Customers,Revenue,GrossValue,DiscountGiven,AvgOrderValue,ShareOfOrdersDiscounted,DiscountRate,LateRate,RevenueShare,TenureYearsAtStart
+4,Margaret Peacock,Sales Representative,Seattle (US),1993-05-03,156,75,232890.846,250187.45,17296.604,1492.89,0.4744,0.0691,0.0662,0.184,3.1704
+3,Janet Leverling,Sales Representative,Seattle (US),1992-04-01,127,63,202812.843,213051.3,10238.457,1596.9515,0.4016,0.0481,0.0394,0.1602,4.2574
+1,Nancy Davolio,Sales Representative,Seattle (US),1992-05-01,123,65,192107.6045,202143.71,10036.1055,1561.8504,0.4553,0.0496,0.0167,0.1518,4.1752
+2,Andrew Fuller,"Vice President, Sales",Seattle (US),1992-08-14,96,59,166537.755,177749.26,11211.505,1734.7683,0.375,0.0631,0.043,0.1316,3.8877
+8,Laura Callahan,Inside Sales Coordinator,Seattle (US),1994-03-05,104,56,126862.2775,133301.03,6438.7525,1219.8296,0.4808,0.0483,0.04,0.1002,2.3326
+7,Robert King,Sales Representative,London (UK),1994-01-02,72,45,124568.235,141295.99,16727.755,1730.1144,0.5,0.1184,0.058,0.0984,2.5024
+9,Anne Dodsworth,Sales Representative,London (UK),1994-11-15,43,29,77308.0665,82964.0,5655.9335,1797.862,0.4884,0.0682,0.0952,0.0611,1.6345
+6,Michael Suyama,Sales Representative,London (UK),1993-10-17,67,44,73913.1295,78198.1,4284.9705,1103.181,0.4776,0.0548,0.0462,0.0584,2.7132
+5,Steven Buchanan,Sales Manager,London (UK),1993-10-17,42,29,68792.2825,75567.75,6775.4675,1637.9115,0.5714,0.0897,0.0238,0.0543,2.7132

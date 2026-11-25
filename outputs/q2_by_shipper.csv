@@ -1,0 +1,4 @@
+ShipVia,Shipper,Orders,LateOrders,LateRate,MedianDaysToShip,P90DaysToShip,MedianFreight,MedianFreightShareOfValue
+1,Speedy Express,245,12,0.049,7.0,18.0,41.34,0.0508
+2,United Package,315,16,0.0508,7.0,21.6,44.17,0.0466
+3,Federal Shipping,249,9,0.0361,6.0,12.0,38.11,0.0509

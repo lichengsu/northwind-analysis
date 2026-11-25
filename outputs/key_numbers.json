@@ -1,0 +1,70 @@
+{
+  "data_checks": {
+    "orders": 830,
+    "order_lines": 2155,
+    "first_order": "1996-07-04",
+    "last_order": "1998-05-06",
+    "unshipped_orders": 21,
+    "total_revenue": 1265793.04,
+    "total_discount_value": 88665.55,
+    "lines_without_product": 0,
+    "orders_without_lines": 0
+  },
+  "q1_discounts": {
+    "discount_lines": 838,
+    "discount_line_share": 0.3889,
+    "orders_with_any_discount_share": 0.4578,
+    "discount_given_total": 88665.55,
+    "discount_given_share_of_gross": 0.0655,
+    "median_rel_qty_discounted": 1.25,
+    "median_rel_qty_full_price": 1.0,
+    "lines_above_cap": 472,
+    "discount_given_above_cap_lines": 70717.06,
+    "savings_if_capped_at_10pct": 36082.77
+  },
+  "q2_shipping": {
+    "shipped_orders": 809,
+    "late_orders": 37,
+    "late_rate": 0.0457,
+    "late_rate_rush_14d": 0.1765,
+    "late_rate_standard_28d": 0.0367,
+    "late_rate_relaxed_42d": 0.0,
+    "median_days_to_ship_rush": 7.5,
+    "median_days_to_ship_standard": 7.0,
+    "late_rate_by_shipper": {
+      "Speedy Express": 0.049,
+      "United Package": 0.0508,
+      "Federal Shipping": 0.0361
+    },
+    "median_days_to_ship_all": 7.0,
+    "orders_slower_than_14d": 96,
+    "share_slower_than_14d": 0.1187,
+    "min_days_to_ship_among_late": 15,
+    "median_days_late_among_late": 6.0,
+    "freight_share_of_value_median": 0.0497
+  },
+  "q3_sales_reps": {
+    "top_rep": "Margaret Peacock",
+    "top_rep_revenue": 232890.85,
+    "bottom_rep": "Steven Buchanan",
+    "bottom_rep_revenue": 68792.28,
+    "revenue_ratio_top_to_bottom": 3.39,
+    "highest_discount_rep": "Robert King",
+    "highest_discount_rate": 0.1184,
+    "lowest_discount_rep": "Janet Leverling",
+    "lowest_discount_rate": 0.0481,
+    "spearman_discount_vs_revenue": -0.38,
+    "spearman_tenure_vs_revenue": 0.63,
+    "spearman_discount_vs_avg_order_value": 0.43,
+    "us_revenue_per_person": 184242.27,
+    "uk_revenue_per_person": 86145.43,
+    "us_discount_rate": 0.0566,
+    "uk_discount_rate": 0.0885,
+    "customers_served_by_both_offices": 77,
+    "customers_total": 89,
+    "tenure_range_years": [
+      1.6,
+      4.3
+    ]
+  }
+}
