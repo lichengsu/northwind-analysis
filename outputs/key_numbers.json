@@ -11,6 +11,51 @@
     "orders_without_lines": 0
   },
   "q1_discounts": {
+    "lift_models": [
+      {
+        "Model": "across",
+        "Lines": 2147,
+        "LiftAnyDiscount": 0.2565,
+        "LiftAnyDiscount_CI_Low": 0.0723,
+        "LiftAnyDiscount_CI_High": 0.4723,
+        "P_AnyDiscount": 0.0048,
+        "LiftPerExtraPoint": 0.0034,
+        "P_PerExtraPoint": 0.5031
+      },
+      {
+        "Model": "within",
+        "Lines": 2147,
+        "LiftAnyDiscount": 0.0571,
+        "LiftAnyDiscount_CI_Low": -0.0818,
+        "LiftAnyDiscount_CI_High": 0.217,
+        "P_AnyDiscount": 0.4397,
+        "LiftPerExtraPoint": -0.0002,
+        "P_PerExtraPoint": 0.9636
+      }
+    ],
+    "assumed_margin": 0.3,
+    "break_even_pts_at_base_margin": {
+      "across": 6.6,
+      "within": 0.0
+    },
+    "profit_impact_at_base_margin": {
+      "across": -44831.19,
+      "within": -79365.85
+    },
+    "profit_change_at_levels_across": {
+      "5%": 0.0647,
+      "10%": -0.1338,
+      "15%": -0.3394,
+      "20%": -0.5522,
+      "25%": -0.7723
+    },
+    "profit_change_at_levels_within": {
+      "5%": -0.1199,
+      "10%": -0.2966,
+      "15%": -0.473,
+      "20%": -0.649,
+      "25%": -0.8247
+    },
     "discount_lines": 838,
     "discount_line_share": 0.3889,
     "orders_with_any_discount_share": 0.4578,
@@ -36,6 +81,77 @@
       "United Package": 0.0508,
       "Federal Shipping": 0.0361
     },
+    "slow_rate_by_shipper": {
+      "Speedy Express": 0.1224,
+      "United Package": 0.1492,
+      "Federal Shipping": 0.0763
+    },
+    "shipper_tests": [
+      {
+        "Outcome": "Shipped late",
+        "FederalRate": 0.0361,
+        "OthersRate": 0.05,
+        "Test": "Chi-square, all three shippers",
+        "Effect": NaN,
+        "PValue": 0.6809
+      },
+      {
+        "Outcome": "Shipped late",
+        "FederalRate": 0.0361,
+        "OthersRate": 0.05,
+        "Test": "Fisher exact, Federal vs. others",
+        "Effect": 0.7125,
+        "PValue": 0.4677
+      },
+      {
+        "Outcome": "Shipped late",
+        "FederalRate": 0.0361,
+        "OthersRate": 0.05,
+        "Test": "Logistic regression with controls",
+        "Effect": 0.6488,
+        "PValue": 0.2781
+      },
+      {
+        "Outcome": "Over 14 days to dispatch",
+        "FederalRate": 0.0763,
+        "OthersRate": 0.1375,
+        "Test": "Chi-square, all three shippers",
+        "Effect": NaN,
+        "PValue": 0.0285
+      },
+      {
+        "Outcome": "Over 14 days to dispatch",
+        "FederalRate": 0.0763,
+        "OthersRate": 0.1375,
+        "Test": "Fisher exact, Federal vs. others",
+        "Effect": 0.5182,
+        "PValue": 0.0132
+      },
+      {
+        "Outcome": "Over 14 days to dispatch",
+        "FederalRate": 0.0763,
+        "OthersRate": 0.1375,
+        "Test": "Logistic regression with controls",
+        "Effect": 0.5135,
+        "PValue": 0.0134
+      },
+      {
+        "Outcome": "Days to dispatch",
+        "FederalRate": 6.0,
+        "OthersRate": 7.0,
+        "Test": "Mann-Whitney, Federal vs. others",
+        "Effect": NaN,
+        "PValue": 0.0176
+      },
+      {
+        "Outcome": "Freight as share of order value",
+        "FederalRate": 0.0509,
+        "OthersRate": 0.0492,
+        "Test": "Kruskal-Wallis, all three shippers",
+        "Effect": NaN,
+        "PValue": 0.522
+      }
+    ],
     "median_days_to_ship_all": 7.0,
     "orders_slower_than_14d": 96,
     "share_slower_than_14d": 0.1187,
@@ -46,22 +162,31 @@
   "q3_sales_reps": {
     "top_rep": "Margaret Peacock",
     "top_rep_revenue": 232890.85,
-    "bottom_rep": "Steven Buchanan",
-    "bottom_rep_revenue": 68792.28,
-    "revenue_ratio_top_to_bottom": 3.39,
     "highest_discount_rep": "Robert King",
     "highest_discount_rate": 0.1184,
-    "lowest_discount_rep": "Janet Leverling",
-    "lowest_discount_rate": 0.0481,
-    "spearman_discount_vs_revenue": -0.38,
-    "spearman_tenure_vs_revenue": 0.63,
-    "spearman_discount_vs_avg_order_value": 0.43,
     "us_revenue_per_person": 184242.27,
     "uk_revenue_per_person": 86145.43,
+    "us_orders_per_person": 121.2,
+    "uk_orders_per_person": 56.0,
+    "us_customers_per_person": 63.6,
+    "uk_customers_per_person": 36.8,
+    "us_avg_order_value": 1520.15,
+    "uk_avg_order_value": 1538.31,
+    "avg_order_value_mannwhitney_p": 0.4639,
     "us_discount_rate": 0.0566,
     "uk_discount_rate": 0.0885,
     "customers_served_by_both_offices": 77,
     "customers_total": 89,
+    "shared_customers_mean_rate_us": 0.0429,
+    "shared_customers_mean_rate_uk": 0.0581,
+    "shared_customers_wilcoxon_p": 0.0363,
+    "spearman_customer_size_vs_discount_rate": 0.68,
+    "spearman_customer_p": 2.490244086014167e-13,
+    "largest_quartile_discount_rate": 0.0741,
+    "largest_quartile_share_of_discount": 0.754,
+    "bottom_half_discount_rate": 0.0359,
+    "spearman_rep_discount_vs_revenue": -0.38,
+    "spearman_rep_p": 0.3085,
     "tenure_range_years": [
       1.6,
       4.3

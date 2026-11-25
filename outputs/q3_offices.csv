@@ -1,3 +1,3 @@
-Office,People,Orders,Revenue,GrossValue,DiscountGiven,DiscountRate,RevenuePerPerson
-London (UK),4,224,344581.7135,378025.84,33444.1265,0.0885,86145.4284
-Seattle (US),5,606,921211.326,976432.75,55221.424,0.0566,184242.2652
+Office,People,Orders,Revenue,GrossValue,DiscountGiven,CustomersPerPerson,DiscountRate,RevenuePerPerson,OrdersPerPerson,AvgOrderValue
+London (UK),4,224,344581.7135,378025.84,33444.1265,36.75,0.0885,86145.4284,56.0,1538.3112
+Seattle (US),5,606,921211.326,976432.75,55221.424,63.6,0.0566,184242.2652,121.2,1520.1507

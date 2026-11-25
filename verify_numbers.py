@@ -42,7 +42,9 @@ def recompute():
     Returns:
         dict[str, int | float]: Total revenue and discount, share of
         discount at 15% or more, late order count, rush late rate,
-        and revenue per person and discount rate for each office.
+        Federal Shipping's share of orders taking over 14 days to
+        dispatch, and orders per person, revenue per person, and
+        discount rate for each office.
     """
     wb =load_workbook(DATA, read_only=True, data_only=True)
     lines = list(rows(wb["Orders Details"]))
@@ -69,9 +71,14 @@ def recompute():
     rush = [o for o in shipped if (o["RequiredDate"] - o["OrderDate"]).days == 14]
     rush_late = [o for o in rush if o["ShippedDate"] > o["RequiredDate"]]
 
+    federal = [o for o in shipped if o["ShipVia"] == 3]
+    federal_slow = [o for o in federal if (o["ShippedDate"] - o["OrderDate"]).days > 14]
+
     office_rev, office_gross, office_disc, office_people = (defaultdict(float) for _ in range(4))
+    office_orders = defaultdict(int)
     for o in orders:
         country = employees[o["EmployeeID"]]["Country"]
+        office_orders[country] += 1
         office_rev[country] += revenue_by_order[o["OrderID"]]
         office_gross[country] += gross_by_order[o["OrderID"]]
         office_disc[country] += discount_by_order[o["OrderID"]]
@@ -84,6 +91,9 @@ def recompute():
         "share_of_discount_at_15pct_or_more": round(deep_discount_value / total_discount_value, 4),
         "late_orders": len(late),
         "late_rate_rush_14d": round(len(rush_late) / len(rush), 4),
+        "federal_slow_rate": round(len(federal_slow) / len(federal), 4),
+        "uk_orders_per_person": round(office_orders["UK"] / office_people["UK"], 1),
+        "us_orders_per_person": round(office_orders["USA"] / office_people["USA"], 1),
         "us_revenue_per_person": round(office_rev["USA"] / office_people["USA"], 2),
         "uk_revenue_per_person": round(office_rev["UK"] / office_people["UK"], 2),
         "us_discount_rate": round(office_disc["USA"] / office_gross["USA"], 4),
@@ -107,6 +117,9 @@ def main():
         "discount_given_total": pipeline["q1_discounts"]["discount_given_total"],
         "late_orders": pipeline["q2_shipping"]["late_orders"],
         "late_rate_rush_14d": pipeline["q2_shipping"]["late_rate_rush_14d"],
+        "federal_slow_rate": pipeline["q2_shipping"]["slow_rate_by_shipper"]["Federal Shipping"],
+        "uk_orders_per_person": pipeline["q3_sales_reps"]["uk_orders_per_person"],
+        "us_orders_per_person": pipeline["q3_sales_reps"]["us_orders_per_person"],
         "us_revenue_per_person": pipeline["q3_sales_reps"]["us_revenue_per_person"],
         "uk_revenue_per_person": pipeline["q3_sales_reps"]["uk_revenue_per_person"],
         "us_discount_rate": pipeline["q3_sales_reps"]["us_discount_rate"],

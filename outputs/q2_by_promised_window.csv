@@ -1,4 +1,4 @@
-PromisedDays,Orders,LateOrders,LateRate,MedianDaysToShip,P90DaysToShip,MedianFreight,MedianFreightShareOfValue
-14,68,12,0.1765,7.5,22.3,46.87,0.0488
-28,682,25,0.0367,7.0,17.0,39.37,0.05
-42,59,0,0.0,7.0,19.0,52.84,0.0475
+PromisedDays,Orders,LateOrders,LateRate,SlowOrders,SlowRate,MedianDaysToShip,P90DaysToShip,MedianFreight,MedianFreightShareOfValue,LateRate_CI_Low,LateRate_CI_High,SlowRate_CI_Low,SlowRate_CI_High
+14,68,12,0.1765,12,0.1765,7.5,22.3,46.87,0.0488,0.1039,0.2836,0.1039,0.2836
+28,682,25,0.0367,76,0.1114,7.0,17.0,39.37,0.05,0.025,0.0536,0.09,0.1373
+42,59,0,0.0,8,0.1356,7.0,19.0,52.84,0.0475,0.0,0.0611,0.0703,0.2454

@@ -60,6 +60,7 @@
   h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.01em; }
   h2 { font-size: 24px; line-height: 1.25; margin: 0 0 6px; }
   h3 { font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin: 28px 0 6px; }
+  h4 { font-size: 16px; margin: 28px 0 4px; }
   p { margin: 0 0 12px; }
   .lede { color: var(--ink-2); font-size: 18px; max-width: 68ch; }
   a { color: var(--accent); }
@@ -87,6 +88,7 @@
   th:first-child, td:first-child { text-align: left; }
   tr:last-child td { border-bottom: none; }
   td.hl { color: var(--accent-2); font-weight: 600; }
+  td.good { color: var(--accent); font-weight: 600; }
   .note { color: var(--muted); font-size: 13px; }
   .finding {
     background: var(--callout); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
@@ -108,95 +110,139 @@
   <p class="lede">An analysis of 830 orders and $1.27M in net revenue for Northwind's sales manager. Three questions cover how
     the company discounts, ships, and sells, and each answer ends with a decision the manager can make.</p>
   <nav class="toc" aria-label="Questions">
-    <a href="#discounts"><span class="num">Q1</span><span class="q">Do deeper discounts buy bigger orders?</span>
-      <span class="a">Hardly. Discounts of 15% and above account for 80% of discount dollars but lift order size about as much as 5% does.</span></a>
-    <a href="#shipping"><span class="num">Q2</span><span class="q">What drives late shipments, the shipper or the promise?</span>
-      <span class="a">The promise. Rush orders are late 18% of the time because they aren't dispatched any faster.</span></a>
-    <a href="#reps"><span class="num">Q3</span><span class="q">How do sales staff and offices compare, and does discounting help them sell?</span>
-      <span class="a">Seattle sells 2.1x as much per person as London while discounting less, to the same customers.</span></a>
+    <a href="#discounts"><span class="num">Q1</span><span class="q">How much volume does a discount buy, and is it worth it?</span>
+      <span class="a">Not enough. Discounts of 10% or more lose profit under every estimate. For the same customer, discounts add no measurable volume.</span></a>
+    <a href="#shipping"><span class="num">Q2</span><span class="q">What drives late shipments, and is Federal Shipping better?</span>
+      <span class="a">Rush promises drive lateness. Federal stalls half as many orders (p = 0.01), but its lower late rate could be chance.</span></a>
+    <a href="#reps"><span class="num">Q3</span><span class="q">Why does London sell less, and are discounts justified?</span>
+      <span class="a">London takes fewer orders, not smaller ones. Discounts follow account size, but they don't buy volume, and London discounts the same customers more.</span></a>
   </nav>
 </header>
 
 <!-- ============================== Q1 ============================== -->
 <section class="question" id="discounts">
   <p class="qnum">Question 1</p>
-  <h2>Do deeper discounts buy bigger orders, or do they just give away revenue?</h2>
+  <h2>How much extra volume does a discount buy, and is it worth what it costs?</h2>
 
   <h3>Why it matters</h3>
   <p>Northwind gave away <strong>$88,666</strong> in discounts, 6.6% of the list value of everything it sold, and 46% of orders
-    had at least one discounted line. A discount pays for itself only if it brings extra volume. If a 25% discount
-    brings no more volume than a 5% discount, the extra 20 points are revenue given away for nothing.</p>
+    had at least one discounted line. A discount pays for itself only if it brings enough extra volume to cover the margin given up.
+    To judge that, the manager needs two numbers: how much volume a discount actually buys, and the break-even point.</p>
 
   <h3>Approach</h3>
   <ul>
-    <li>Analyzed all 2,155 order lines. Discounts are set per line at 0, 5, 10, 15, 20, or 25%. Eight lines carry
-      non-standard 1–6% discounts worth $13 in total and are left out of the chart.</li>
-    <li>Products sell in very different quantities (cheese vs. bottled beer), so raw quantities can't be compared across
-      products. Each line's quantity is compared with <em>the same product's</em> median quantity when sold at full price.
-      A value of 1.3x means the line was 30% larger than that product's typical full-price line.</li>
-    <li>The chart shows the median of that ratio at each discount level, with a 95% bootstrap interval
-      (2,000 resamples) to show how much the estimate could move by chance.</li>
+    <li>Analyzed the 2,147 order lines at a standard discount (0, 5, 10, 15, 20, or 25%). Each line's quantity is compared with
+      <em>the same product's</em> median quantity at full price, so a cheese and a case of beer can be compared. A value of 1.3x
+      means 30% more than usual.</li>
+    <li><strong>Generalizing the lift.</strong> A regression estimates two effects: the jump from giving <em>any</em> discount, and
+      the extra lift from each additional discount point. It is run twice:
+      <ul>
+        <li><strong>Pooled:</strong> compares discounted and full-price lines across all customers.</li>
+        <li><strong>Same customer:</strong> compares each customer's discounted lines only with <em>that customer's own</em>
+          full-price lines (customer fixed effects). This removes the fact that big buyers both get more discounts and buy more
+          anyway.</li>
+      </ul>
+      Standard errors allow for lines on the same order being related.</li>
+    <li><strong>Profit and loss.</strong> Northwind's data has no product costs, so the analysis <strong>assumes a 30% gross margin
+      at list price</strong>, with 20% and 40% shown as alternatives. For a line with list price <em>p</em>, margin <em>m</em>, and
+      discount <em>d</em>, gross profit relative to full price is <code>lift × (m − d) ÷ m − 1</code>.</li>
   </ul>
 
   <figure>
     <img src="figures/q1_discount_lift.png" alt="Dot plot of median relative order quantity by discount level: 0% is 1.00x, 5% is 1.25x, 10% is 1.20x, 15% is 1.33x, 20% is 1.29x, 25% is 1.46x. The 95% intervals of all discount levels overlap.">
-    <figcaption>Source: Orders Details sheet. Relative quantity = line quantity ÷ that product's median quantity on 0% lines.</figcaption>
+    <figcaption>Raw view: median quantity at each discount level relative to the same product at full price, with 95% bootstrap intervals.</figcaption>
   </figure>
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Discount</th><th>Lines</th><th>Median qty</th><th>Relative qty (95% CI)</th><th>Discount given</th><th>Share of all discount $</th></tr></thead>
+      <thead><tr><th>Estimate</th><th>Lift from any discount (95% CI)</th><th>p</th><th>Extra lift per added point</th><th>p</th></tr></thead>
       <tbody>
-        <tr><td>0%</td><td>1,317</td><td>18</td><td>1.00x</td><td>$0</td><td>0%</td></tr>
-        <tr><td>5%</td><td>185</td><td>20</td><td>1.25x (1.04–1.36)</td><td>$7,769</td><td>8.8%</td></tr>
-        <tr><td>10%</td><td>173</td><td>20</td><td>1.20x (1.00–1.40)</td><td>$10,167</td><td>11.5%</td></tr>
-        <tr><td>15%</td><td>157</td><td>21</td><td>1.33x (1.11–1.55)</td><td>$15,442</td><td class="hl">17.4%</td></tr>
-        <tr><td>20%</td><td>161</td><td>21</td><td>1.29x (1.11–1.50)</td><td>$22,295</td><td class="hl">25.1%</td></tr>
-        <tr><td>25%</td><td>154</td><td>25</td><td>1.46x (1.19–1.67)</td><td>$32,980</td><td class="hl">37.2%</td></tr>
+        <tr><td>Pooled, all customers</td><td>+25.6% (+7.2% to +47.2%)</td><td>0.005</td><td>+0.3%</td><td>0.50</td></tr>
+        <tr><td>Same customer only</td><td class="hl">+5.7% (−8.2% to +21.7%)</td><td class="hl">0.44</td><td>−0.0%</td><td>0.96</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">Table: <code>outputs/q1_discount_levels.csv</code>.</p>
+  <p class="note">Table: <code>outputs/q1_lift_models.csv</code>. Lift is the change in quantity relative to the product's full-price median.</p>
+
+  <figure>
+    <img src="figures/q1_profit_by_discount.png" alt="Line chart of gross profit change versus full price at discounts from 5% to 25%, assuming a 30% margin. The pooled estimate is +6% at 5%, crosses zero near 6.6%, and falls to -77% at 25%. The same-customer estimate is -12% at 5% and falls to -82% at 25%. Both bands are entirely below zero from 10% upward.">
+    <figcaption>Curves use the regression estimates; bands show the 95% range from 4,000 draws of the estimated coefficients.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Gross profit vs. full price (30% margin)</th><th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th></tr></thead>
+      <tbody>
+        <tr><td>Pooled lift (+26%)</td><td class="good">+6%</td><td class="hl">−13%</td><td class="hl">−34%</td><td class="hl">−55%</td><td class="hl">−77%</td></tr>
+        <tr><td>Same-customer lift (+6%)</td><td class="hl">−12%</td><td class="hl">−30%</td><td class="hl">−47%</td><td class="hl">−65%</td><td class="hl">−82%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Margin</th><th>Break-even (pooled)</th><th>Break-even (same cust.)</th><th>Profit effect (pooled)</th><th>Profit effect (same cust.)</th></tr></thead>
+      <tbody>
+        <tr><td>20%</td><td>below 5%</td><td>below 5%</td><td>−$59,438</td><td>−$82,462</td></tr>
+        <tr><td><strong>30%</strong></td><td><strong>6.6%</strong></td><td>below 5%</td><td><strong>−$44,831</strong></td><td>−$79,366</td></tr>
+        <tr><td>40%</td><td>9.1%</td><td>below 5%</td><td>−$30,224</td><td>−$76,270</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Tables: <code>outputs/q1_profit_curves.csv</code>, <code>outputs/q1_break_even.csv</code>. "Below 5%" means even
+    Northwind's smallest discount loses profit; the data can't say anything about discounts under 5%. Profit effect = gross profit
+    on the 830 discounted lines minus what they would have earned at full price on the volume implied without the lift.</p>
 
   <div class="finding">
     <h3 style="margin-top:0">Main finding</h3>
-    <p>Discounted lines are larger than full-price lines: about 1.25x the product's normal quantity. But the lift barely
-      grows with the size of the discount. A 5% line sells 1.25x, a 20% line 1.29x, and even 25% reaches only 1.46x,
-      and the intervals for every level overlap. Meanwhile, the 15–25% tiers account for <strong>80% of all discount
-      dollars</strong>.</p>
+    <p><strong>The lift generalizes to "about +26% for any discount, and no more for deeper ones."</strong> The extra lift per added
+      point is about 0.3% and indistinguishable from zero. A 25% discount buys about the same volume as a 5% one.</p>
+    <p><strong>Even that +26% mostly isn't caused by the discount.</strong> Comparing each customer with themselves, the lift drops to
+      +6% and is no longer statistically significant. Large customers both buy more and get discounts, which inflates the pooled
+      number.</p>
+    <p><strong>It isn't worth it above 5%.</strong> At a 30% margin, every discount of 10% or more loses profit under both estimates,
+      with the full 95% band below zero. Only 5% can break even, and only if the generous pooled lift is real. In total, discounts cost
+      an estimated <strong>$45K–$79K in gross profit</strong> over 22 months.</p>
   </div>
 
   <h3>Business implication</h3>
-  <p>Cap standard discounts at 10% and require manager approval above that. If customers had bought the same quantities, capping
-    the 472 lines discounted above 10% would have kept about <strong>$36,000</strong> (2.9% of net revenue) in the business.
-    Treat that figure as an upper bound, because some customers would buy less without the deeper discount. A good first step is a
-    pilot with a few accounts.</p>
-  <p class="note">Caveat: this is observational data. Larger buyers may receive bigger discounts <em>because</em> they buy more,
-    which would make discounts look more effective than they are. That bias would strengthen the case for a cap, not weaken it.</p>
+  <ul>
+    <li><strong>Make 5% the most a rep can give without sign-off.</strong> Above that, require manager approval and a volume
+      commitment in return. Today 15–25% discounts make up 80% of all discount dollars.</li>
+    <li><strong>Stop treating discounts as a volume lever.</strong> The evidence says they mostly go to customers who would have bought
+      anyway (see Q3). If they are meant to reward loyalty, make that explicit with a volume-tier price list.</li>
+    <li><strong>Get real cost data.</strong> The break-even point moves with margin, from below 5% at 20% margin to 9% at 40% margin,
+      and Finance can pin it down. No margin up to 40% makes 15% or more profitable.</li>
+  </ul>
+  <p class="note">Caveat: this is observational data, not an experiment. The same-customer estimate removes differences
+    <em>between</em> customers, but not reasons a customer might get a discount on an unusually large order. Any remaining bias of that
+    kind would make discounts look <em>more</em> effective than they are.</p>
 </section>
 
 <!-- ============================== Q2 ============================== -->
 <section class="question" id="shipping">
   <p class="qnum">Question 2</p>
-  <h2>What drives late shipments: the shipping company, or the deadlines we promise?</h2>
+  <h2>What drives late shipments, and is Federal Shipping actually better?</h2>
 
   <h3>Why it matters</h3>
-  <p>A missed delivery date is a broken promise to a customer, and the obvious response is to blame or replace the shipping company.
-    Before negotiating with shippers, the manager needs to know whether lateness is a carrier problem or an internal one.</p>
+  <p>A missed delivery date is a broken promise to a customer. Before changing processes or shipping contracts, the manager needs to
+    know how much lateness comes from Northwind's own deadlines and dispatch, and whether one shipper is reliably better than the
+    others.</p>
 
   <h3>Approach</h3>
   <ul>
-    <li>Used the 809 shipped orders. The 21 orders placed between 8 Apr and 6 May 1998 had not shipped when the data
-      ends, so they can't yet be on time or late.</li>
-    <li>An order is <strong>late</strong> if <code>ShippedDate</code> is after <code>RequiredDate</code>. Note that
-      <code>ShippedDate</code> records when the order <em>left Northwind</em>, so lateness here comes from internal dispatch,
-      not carrier transit.</li>
-    <li>Compared late rates by the promised window (<code>RequiredDate − OrderDate</code>, which is always 14, 28, or 42 days)
-      and by shipper. Then looked at the full distribution of days from order to dispatch.</li>
+    <li>Used the 809 shipped orders. The 21 orders placed between 8 Apr and 6 May 1998 had not shipped when the data ends.</li>
+    <li>An order is <strong>late</strong> if <code>ShippedDate</code> is after <code>RequiredDate</code>. An order is <strong>stalled</strong>
+      if it took more than 14 days to dispatch. <code>ShippedDate</code> records when the order left Northwind, so both measure
+      dispatch, not carrier transit.</li>
+    <li>Compared Federal Shipping with the other two shippers in three ways. A chi-square test checks all three shippers at once.
+      A Fisher exact test compares Federal with the other two combined. A logistic regression controls for the promised window, plus
+      order value and line count for stalls. Shippers get a similar mix of rush, standard, and relaxed orders, so the comparison is
+      fair.</li>
   </ul>
 
   <figure>
-    <img src="figures/q2_late_rates.png" alt="Two bar charts of late-shipment rate. By promised window: 14-day rush orders 17.6% late (12 of 68), 28-day 3.7% (25 of 682), 42-day 0% (0 of 59). By shipper: Speedy Express 4.9%, United Package 5.1%, Federal Shipping 3.6%.">
+    <img src="figures/q2_late_by_promise.png" alt="Bar chart of late-shipment rate by promised window: 14-day rush orders 17.6% late (12 of 68), 28-day 3.7% (25 of 682), 42-day 0% (0 of 59).">
     <figcaption>Source: Orders sheet, shipped orders only (n = 809).</figcaption>
   </figure>
 
@@ -205,66 +251,96 @@
     <figcaption>Each bar is one day. Orange = order shipped after its required date.</figcaption>
   </figure>
 
+  <figure>
+    <img src="figures/q2_shipper_comparison.png" alt="Two bar charts by shipper with 95% intervals. Late rate: Speedy Express 4.9%, United Package 5.1%, Federal Shipping 3.6%, Federal versus others p = 0.47. Share of orders taking over 14 days to dispatch: Speedy 12.2%, United 14.9%, Federal 7.6%, Federal versus others p = 0.01.">
+    <figcaption>Error bars: 95% Wilson intervals. p-values: Fisher exact test, Federal vs. the other two combined.</figcaption>
+  </figure>
+
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Group</th><th>Orders</th><th>Late</th><th>Late rate</th><th>Median days to dispatch</th><th>90th pct. days</th><th>Median freight</th><th>Freight ÷ order value</th></tr></thead>
+      <thead><tr><th>Outcome</th><th>Federal</th><th>Others</th><th>Test</th><th>Effect</th><th>p</th></tr></thead>
       <tbody>
-        <tr><td>14-day (rush) promise</td><td>68</td><td>12</td><td class="hl">17.6%</td><td>7.5</td><td>22</td><td>$46.87</td><td>4.9%</td></tr>
-        <tr><td>28-day (standard) promise</td><td>682</td><td>25</td><td>3.7%</td><td>7</td><td>17</td><td>$39.37</td><td>5.0%</td></tr>
-        <tr><td>42-day (relaxed) promise</td><td>59</td><td>0</td><td>0.0%</td><td>7</td><td>19</td><td>$52.84</td><td>4.8%</td></tr>
-        <tr><td>Speedy Express</td><td>245</td><td>12</td><td>4.9%</td><td>7</td><td>18</td><td>$41.34</td><td>5.1%</td></tr>
-        <tr><td>United Package</td><td>315</td><td>16</td><td>5.1%</td><td>7</td><td>22</td><td>$44.17</td><td>4.7%</td></tr>
-        <tr><td>Federal Shipping</td><td>249</td><td>9</td><td>3.6%</td><td>6</td><td>12</td><td>$38.11</td><td>5.1%</td></tr>
+        <tr><td>Shipped late</td><td>3.6%</td><td>5.0%</td><td>Chi-square, all three</td><td></td><td>0.68</td></tr>
+        <tr><td></td><td></td><td></td><td>Fisher exact, Federal vs. others</td><td>odds ratio 0.71</td><td>0.47</td></tr>
+        <tr><td></td><td></td><td></td><td>Logistic, controls for promised window</td><td>odds ratio 0.65</td><td>0.28</td></tr>
+        <tr><td>Stalled over 14 days</td><td class="good">7.6%</td><td>13.8%</td><td>Chi-square, all three</td><td></td><td class="good">0.03</td></tr>
+        <tr><td></td><td></td><td></td><td>Fisher exact, Federal vs. others</td><td>odds ratio 0.52</td><td class="good">0.013</td></tr>
+        <tr><td></td><td></td><td></td><td>Logistic, controls for window, value, lines</td><td>odds ratio 0.51</td><td class="good">0.013</td></tr>
+        <tr><td>Days to dispatch (median)</td><td>6</td><td>7</td><td>Mann-Whitney</td><td></td><td class="good">0.018</td></tr>
+        <tr><td>Freight ÷ order value (median)</td><td>5.1%</td><td>4.9%</td><td>Kruskal-Wallis, all three</td><td></td><td>0.52</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">Tables: <code>outputs/q2_by_promised_window.csv</code>, <code>outputs/q2_by_shipper.csv</code>.</p>
+  <p class="note">Tables: <code>outputs/q2_shipper_tests.csv</code>, <code>outputs/q2_by_shipper.csv</code>,
+    <code>outputs/q2_by_promised_window.csv</code>. Two outcomes are tested, and the stall result stays significant after a
+    Bonferroni correction (0.013 &lt; 0.025).</p>
 
   <div class="finding">
     <h3 style="margin-top:0">Main finding</h3>
-    <p>Lateness is a dispatch problem, not a carrier problem. Rush orders are promised in 14 days but dispatched on the same
-      schedule as everything else (median 7.5 vs. 7 days), so <strong>17.6% of them are late, about 5x the 3.7% rate for
-      standard orders</strong>. The three shippers differ by only a few orders (3.6–5.1%; a difference this size could
-      easily be chance). Every one of the 37 late orders took at least 15 days to leave the warehouse. They come from a tail
-      of 96 orders (12%) that sit for 2–5 weeks.</p>
+    <p><strong>The biggest driver is the promise, not the carrier.</strong> Rush orders are dispatched on the same schedule as everything
+      else (median 7.5 vs. 7 days), so 17.6% of them are late, against 3.7% of standard orders. Every one of the 37 late orders sat at
+      least 15 days before leaving.</p>
+    <p><strong>But the shippers aren't all the same. Federal Shipping is measurably better at getting orders out the door.</strong>
+      Only 7.6% of its orders stall for more than 14 days, against 12.2% for Speedy Express and 14.9% for United Package. That
+      halves the odds (odds ratio 0.51) and holds after controlling for order mix (p = 0.013). Its lower <em>late</em> rate (3.6% vs. 5.0%)
+      points the same way but is not significant: with only 37 late orders in total, a gap of a few orders could easily be chance.
+      Federal costs the same in freight relative to order value.</p>
   </div>
 
   <h3>Business implication</h3>
   <ul>
-    <li><strong>Give rush orders priority at dispatch</strong> (a separate queue or same-week pick), or stop promising
-      14 days until that exists. This alone targets a third of all late orders.</li>
-    <li><strong>Flag any order not dispatched within 10 days</strong> for follow-up. That flag would have covered 142 orders (18%),
-      including all 37 that ended up late, while there was still time to act.</li>
-    <li>Don't switch carriers to fix lateness. If anything, Federal Shipping has the lowest median freight charge, the shortest
-      dispatch tail (90th percentile 12 days), and the fewest late orders, which makes it the default choice for rush orders.</li>
+    <li><strong>Prioritize rush orders at dispatch</strong> (a separate queue or same-week pick), or stop promising 14 days. This targets
+      a third of all late orders.</li>
+    <li><strong>Route rush orders, and by default all orders, through Federal Shipping.</strong> It stalls fewer orders, at no extra freight cost.
+      Since stalls are what turn into late orders, this should reduce lateness over time. Track it to confirm.</li>
+    <li><strong>Ask why Federal dispatches faster.</strong> The data can't say: more frequent pickups are one possible reason.
+      If so, ask Speedy Express and United Package to match the pickup schedule rather than dropping them.</li>
+    <li><strong>Flag any order not dispatched within 10 days.</strong> That would have covered 142 orders (18%), including all 37 that
+      ended up late, while there was still time to act.</li>
   </ul>
 </section>
 
 <!-- ============================== Q3 ============================== -->
 <section class="question" id="reps">
   <p class="qnum">Question 3</p>
-  <h2>How do sales staff and offices compare, and does heavier discounting help them sell more?</h2>
+  <h2>Why does London sell less, and are the discounts reps give justified?</h2>
 
   <h3>Why it matters</h3>
-  <p>Nine people took orders, split between Seattle and London. Each one decides how much discount to give. If the
-    staff who discount most don't sell more, discount authority should be tightened. If one office lags, the manager
-    should find out why before setting targets.</p>
+  <p>London's four staff bring in less than half as much revenue per person as Seattle's five, while giving deeper discounts. Before
+    setting targets or discount rules, the manager needs to know <em>where</em> the gap comes from, and whether the visible link
+    between discounts and sales means discounts are earning their keep.</p>
 
   <h3>Approach</h3>
   <ul>
-    <li>Credited each order's net revenue to the employee who took it, over the same 22-month window (every employee
-      took orders from July–August 1996 through April–May 1998).</li>
-    <li><strong>Discount rate</strong> = discount dollars given ÷ list value of that person's sales, so it measures depth of
-      discounting, not just how often a discount was given.</li>
-    <li>Checked whether the offices serve different markets. 77 of 89 customers bought from both offices, and both
-      offices' largest markets are the USA, Germany, Austria, and Brazil, so territory doesn't explain the gap.</li>
-    <li>Tenure isn't adjusted for. Everyone was hired before the data starts (1.6–4.3 years earlier), and London staff
-      are all more recent hires, so with nine people tenure can't be separated from office.</li>
+    <li><strong>Splitting the gap.</strong> Revenue per person = orders per person × average order value. Comparing the two parts shows
+      whether London takes fewer orders or smaller ones.</li>
+    <li><strong>Where discounts go.</strong> Customers are ranked into four equal groups by the list value of what they bought (before
+      discounts, so a discount can't move a customer down a group), and each group's discount rate is compared.</li>
+    <li><strong>Same customer, different office.</strong> 77 of 89 customers bought from both offices. A paired test (Wilcoxon signed-rank)
+      checks whether London gives the <em>same</em> customers deeper discounts.</li>
+    <li><strong>Are discounts justified?</strong> A discount is justified if it either rewards volume the customer brings (pricing by
+      account size) or creates extra volume (tested in Q1).</li>
   </ul>
 
   <figure>
-    <img src="figures/q3_discount_vs_revenue.png" alt="Scatter plot of discount rate versus net revenue for nine employees. Seattle staff, in blue, sit at 4.8 to 6.9% discount and $127K to $233K revenue. London staff, in orange, sit at 5.5 to 11.8% discount and $69K to $125K revenue. Robert King has the highest discount rate at 11.8%.">
-    <figcaption>Source: Orders, Orders Details, and Employees sheets.</figcaption>
+    <img src="figures/q3_office_gap.png" alt="Three bar charts comparing Seattle and London. Orders per person: Seattle 121, London 56. Average order value: Seattle $1,520, London $1,538. Discount given as percent of list value: Seattle 5.7%, London 8.8%.">
+    <figcaption>Source: Orders, Orders Details, and Employees sheets, July 1996 – May 1998.</figcaption>
+  </figure>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Office</th><th>People</th><th>Revenue per person</th><th>Orders per person</th><th>Customers per person</th><th>Avg order value</th><th>Discount rate</th></tr></thead>
+      <tbody>
+        <tr><td>Seattle (US)</td><td>5</td><td>$184,242</td><td>121</td><td>64</td><td>$1,520</td><td>5.7%</td></tr>
+        <tr><td>London (UK)</td><td>4</td><td class="hl">$86,145</td><td class="hl">56</td><td class="hl">37</td><td>$1,538</td><td class="hl">8.8%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Average order value difference: Mann-Whitney p = 0.46 (no difference). Table: <code>outputs/q3_offices.csv</code>.</p>
+
+  <figure>
+    <img src="figures/q3_discount_by_customer_size.png" alt="Bar chart of discount rate by customer size quartile: smallest 25% of customers 0.4%, second 4.7%, third 5.5%, largest 7.4%. The largest quarter receives 75% of all discount dollars.">
+    <figcaption>Discount rate = discount dollars ÷ list value of the group's purchases. Table: <code>outputs/q3_discount_by_customer_size.csv</code>.</figcaption>
   </figure>
 
   <div class="table-wrap">
@@ -283,35 +359,34 @@
       </tbody>
     </table>
   </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Office</th><th>People</th><th>Orders</th><th>Net revenue</th><th>Revenue per person</th><th>Discount rate</th></tr></thead>
-      <tbody>
-        <tr><td>Seattle (US)</td><td>5</td><td>606</td><td>$921,211</td><td>$184,242</td><td>5.7%</td></tr>
-        <tr><td>London (UK)</td><td>4</td><td>224</td><td>$344,582</td><td class="hl">$86,145</td><td class="hl">8.9%</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="note">Tables: <code>outputs/q3_sales_reps.csv</code>, <code>outputs/q3_offices.csv</code>.</p>
+  <p class="note">Table: <code>outputs/q3_sales_reps.csv</code>.</p>
 
   <div class="finding">
     <h3 style="margin-top:0">Main finding</h3>
-    <p>Discounting doesn't go with selling more. Across the nine employees the rank correlation between discount rate and
-      revenue is slightly negative (−0.38). The gap is between offices: <strong>Seattle produces $184K per person at a 5.7% discount
-      rate; London produces $86K per person at 8.9%</strong>, selling to the same customers. Comparing sales reps only, London's three
-      average $92K against Seattle's three at $209K. Robert King is London's top seller but gives the deepest discounts in the company
-      (11.8%). Peacock, Leverling, and Davolio sell nearly twice as much at 4.8–6.9%.</p>
+    <p><strong>London simply takes fewer orders.</strong> Its staff take 56 orders each against Seattle's 121 and serve 37 customers each against
+      64, but London's orders are just as large ($1,538 vs. $1,520). The whole revenue gap is order count and customer reach, not order
+      size. Deeper discounts haven't closed it.</p>
+    <p><strong>The discount–sales correlation is real, but it runs from size to discount.</strong> The largest quarter of customers get a 7.4%
+      discount rate and <strong>75% of all discount dollars</strong>; the smallest quarter get 0.4% (rank correlation 0.68, p &lt; 0.001).
+      That fits volume pricing: big accounts are rewarded for being big. But Q1 shows that discounts don't make the <em>same</em> customer buy
+      measurably more (+6%, p = 0.44). So discounts are justified as a reward for volume at most, not as a way to generate it, and at a 30%
+      margin they cost more than they earn.</p>
+    <p><strong>London's extra discounting isn't justified.</strong> For the 77 customers who buy from both offices, London's average discount
+      rate is 5.8% against Seattle's 4.3% (paired p = 0.036), with no larger orders in return. Across the nine individuals, discount rate
+      and revenue are not significantly related (rank correlation −0.38, p = 0.31; nine people is too few to tell).</p>
   </div>
 
   <h3>Business implication</h3>
   <ul>
-    <li><strong>Apply the Q1 discount cap to the whole team,</strong> starting with London, which gave away $33K, or 8.9% of
-      list value, against 5.7% in Seattle.</li>
-    <li><strong>Review how London sells before setting its targets.</strong> Pair London reps with Seattle's top three on shared
-      accounts. Because the customers are the same, the difference is likely in coverage and follow-up, not market.</li>
-    <li>Don't read the London gap as a performance verdict yet. London staff are newer, and the manager (Buchanan) also runs
-      the office. Track both offices on revenue per rep <em>and</em> discount rate for two more quarters.</li>
+    <li><strong>Grow London through coverage, not price.</strong> Set targets on active customers and order frequency per rep (London: 37
+      customers per person against Seattle's 64). Pair London reps with Seattle's top three on shared accounts.</li>
+    <li><strong>Replace rep-by-rep discounting with a published volume-tier price list.</strong> It keeps the part of today's discounting that
+      is defensible (bigger accounts pay less) and removes the part that isn't (the same customer paying more or less depending on which
+      office answers the phone).</li>
+    <li><strong>Apply the Q1 5% sign-off limit to everyone,</strong> starting with London, which gave away $33K, 8.8% of list value, against
+      5.7% in Seattle.</li>
+    <li>Don't read this as a verdict on individuals yet. London staff are newer (1.6–2.7 vs. 2.3–4.3 years at the start of the data), and
+      tenure can't be separated from office with nine people. Track both offices on orders per rep and discount rate for two more quarters.</li>
   </ul>
 </section>
 
@@ -322,15 +397,19 @@
     <li><strong>Source:</strong> the course's <em>Northwind Database.xlsx</em> (8 sheets): 830 orders, 2,155 order lines, 91 customers,
       77 products, 9 employees, 3 shippers.</li>
     <li><strong>Net revenue</strong> = <code>UnitPrice × Quantity × (1 − Discount)</code> from the Orders Details sheet, giving
-      $1,265,793 in total. It uses the price on the order line, not the current list price in the Product sheet, which differs
-      on 658 lines because prices rose over time.</li>
+      $1,265,793 in total. It uses the price on the order line, not the current list price in the Product sheet, which is higher on
+      658 lines because prices rose over time.</li>
     <li><strong>Discounts</strong> are stored as imprecise floats (0.05 reads as 0.0500000007) and are rounded to whole
       percents. This changes total revenue by less than one cent.</li>
+    <li><strong>Gross margin is assumed</strong> (30%, with 20% and 40% shown) because the dataset has no product costs. Every profit figure
+      depends on this assumption, and the break-even table shows how much.</li>
+    <li><strong>Statistics:</strong> OLS with order-clustered standard errors and customer fixed effects (Q1); chi-square, Fisher exact,
+      logistic regression, Mann-Whitney, and Kruskal-Wallis tests (Q2); Spearman rank correlation, Mann-Whitney, and Wilcoxon signed-rank
+      tests (Q3). Random draws use a fixed seed (561), so every figure reproduces exactly.</li>
     <li><strong>Time window:</strong> 4 Jul 1996 – 6 May 1998. 1998 is a partial year, so no figure on this page compares
       calendar-year totals.</li>
-    <li><strong>Checks:</strong> every order line matches a product, every order has lines, and order totals add up to line totals.
-      <code>verify_numbers.py</code> recomputes the headline figures straight from the spreadsheet with a separate library
-      (openpyxl) and checks that they match.</li>
+    <li><strong>Checks:</strong> every order line matches a product, and order totals add up to line totals. <code>verify_numbers.py</code>
+      recomputes the headline figures straight from the spreadsheet with a separate library (openpyxl) and checks that they match.</li>
   </ul>
 </section>
 

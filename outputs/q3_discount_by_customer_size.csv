@@ -1,0 +1,5 @@
+SizeTier,Customers,GrossValue,DiscountGiven,ShareGettingAnyDiscount,DiscountRate,ShareOfAllDiscount
+Smallest 25%,23,41265.14,175.86,0.0435,0.0043,0.002
+Second 25%,22,117762.51,5526.0225,0.5,0.0469,0.0623
+Third 25%,22,292728.5,16105.8885,0.9091,0.055,0.1816
+Largest 25%,22,902702.44,66857.7795,1.0,0.0741,0.754

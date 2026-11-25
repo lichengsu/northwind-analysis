@@ -1,0 +1,9 @@
+Outcome,FederalRate,OthersRate,Test,Effect,PValue
+Shipped late,0.0361,0.05,"Chi-square, all three shippers",,0.6809
+Shipped late,0.0361,0.05,"Fisher exact, Federal vs. others",0.7125,0.4677
+Shipped late,0.0361,0.05,Logistic regression with controls,0.6488,0.2781
+Over 14 days to dispatch,0.0763,0.1375,"Chi-square, all three shippers",,0.0285
+Over 14 days to dispatch,0.0763,0.1375,"Fisher exact, Federal vs. others",0.5182,0.0132
+Over 14 days to dispatch,0.0763,0.1375,Logistic regression with controls,0.5135,0.0134
+Days to dispatch,6.0,7.0,"Mann-Whitney, Federal vs. others",,0.0176
+Freight as share of order value,0.0509,0.0492,"Kruskal-Wallis, all three shippers",,0.522
