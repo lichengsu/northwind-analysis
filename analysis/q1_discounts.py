@@ -11,9 +11,7 @@ CAP = 0.10
 N_BOOT = 2000
 N_SIM = 4000
 SEED = 561
-# Northwind has no cost data, so gross margin at list price is assumed.
-BASE_MARGIN = 0.30
-MARGINS = [0.20, 0.30, 0.40]
+LEVEL_PTS = [5, 10, 15, 20, 25]
 MODELS = {
     "across": "LogRelativeQty ~ AnyDiscount + DiscountPts",
     "within": "LogRelativeQty ~ AnyDiscount + DiscountPts + C(CustomerID)",
@@ -228,100 +226,78 @@ def lift(discount_pts, params):
     return np.exp(log_lift).squeeze()
 
 
-def profit_change(discount_pts, params, margin):
-    """Return gross profit per line relative to selling at full price.
+def revenue_change(discount_pts, params):
+    """Return revenue per line relative to selling at full price.
 
-    With list price ``p``, unit cost ``p * (1 - margin)``, and quantity
-    multiplied by the modeled lift, profit changes by
-    ``lift * (margin - d) / margin - 1``.
+    A line sold at discount ``d`` with quantity multiplied by the
+    modeled lift brings in ``lift * (1 - d)`` times its full-price
+    revenue. No cost or margin information is needed.
 
     Args:
         discount_pts (numpy.ndarray): Discounts in percentage points.
         params (numpy.ndarray): Lift coefficients, as in ``lift``.
-        margin (float): Gross margin at list price, e.g. 0.30.
 
     Returns:
-        numpy.ndarray: Fractional profit change; -0.2 means 20% less
-        gross profit than the same line at full price.
+        numpy.ndarray: Fractional revenue change; -0.1 means 10% less
+        revenue than the same line at full price.
     """
     d = np.asarray(discount_pts, dtype=float) / 100
-    return lift(discount_pts, params) * (margin - d) / margin - 1
+    return lift(discount_pts, params) * (1 - d) - 1
 
 
-def break_even_discount(params, margin):
-    """Find the largest discount that does not reduce gross profit.
+def revenue_curves(fits, rng):
+    """Compute revenue-change curves with 95% bands for each model.
 
-    Only the observed range, 5% to 25%, is searched; the models say
-    nothing about discounts below 5%.
-
-    Args:
-        params (numpy.ndarray): Lift coefficients, shape ``(2,)``.
-        margin (float): Gross margin at list price.
-
-    Returns:
-        float: Break-even discount in percentage points, to 0.1 pt;
-        0.0 if every discount from 5% to 25% loses profit.
-    """
-    grid = np.arange(5, 25.01, 0.1)
-    ok = grid[profit_change(grid, params, margin) >= 0]
-    return round(float(ok.max()), 1) if len(ok) else 0.0
-
-
-def profit_curves(fits, margin, rng):
-    """Compute profit-change curves with 95% bands for each model.
-
-    Bands come from ``N_SIM`` draws of the two coefficients from their
-    estimated (clustered) sampling distribution.
+    Only the observed range, 5% to 25%, is covered; the models say
+    nothing about discounts below 5%. Bands come from ``N_SIM`` draws
+    of the two coefficients from their estimated (clustered) sampling
+    distribution.
 
     Args:
         fits (dict): Output of ``fit_lift_models``.
-        margin (float): Gross margin at list price.
         rng (numpy.random.Generator): Random source for the draws.
 
     Returns:
         pandas.DataFrame: One row per 0.5-point step from 5% to 25%
-        with the estimate, lower, and upper profit change per model.
+        with the estimate, lower, and upper revenue change per model.
     """
     grid = np.arange(5, 25.01, 0.5)
     out = pd.DataFrame({"DiscountPts": grid})
     for name, fit in fits.items():
         draws = rng.multivariate_normal(fit["params"], fit["cov"], size=N_SIM)
-        sims = profit_change(grid, draws, margin)
-        out[f"{name}_est"] = profit_change(grid, fit["params"], margin)
+        sims = revenue_change(grid, draws)
+        out[f"{name}_est"] = revenue_change(grid, fit["params"])
         out[f"{name}_low"] = np.percentile(sims, 2.5, axis=0)
         out[f"{name}_high"] = np.percentile(sims, 97.5, axis=0)
     return out
 
 
-def profit_impact(df, params, margin):
-    """Estimate gross profit gained or lost on actual discounted lines.
+def revenue_impact(df, params):
+    """Estimate revenue gained or lost on actual discounted lines.
 
-    Compares each discounted line's profit with the profit it would
-    have earned at full price on the quantity implied by removing the
+    Compares each discounted line's revenue with what it would have
+    brought in at full price on the quantity implied by removing the
     modeled lift.
 
     Args:
         df (pandas.DataFrame): Output of ``model_data``.
         params (numpy.ndarray): Lift coefficients, shape ``(2,)``.
-        margin (float): Gross margin at list price.
 
     Returns:
-        float: Total dollar change in gross profit; negative means
-        discounts cost more profit than the extra volume earned.
+        float: Total dollar change in revenue; negative means the
+        discounts gave away more than the extra volume brought in.
     """
     disc = df[df["AnyDiscount"] == 1]
-    actual = disc["GrossValue"] * (margin - disc["Discount"])
-    full_price = disc["GrossValue"] / lift(disc["DiscountPts"].to_numpy(), params) * margin
-    return float((actual - full_price).sum())
+    full_price = disc["GrossValue"] / lift(disc["DiscountPts"].to_numpy(), params)
+    return float((disc["Revenue"] - full_price).sum())
 
 
-def plot_profit(curves, fits, margin, path):
-    """Draw profit change by discount depth for both lift estimates.
+def plot_revenue(curves, fits, path):
+    """Draw revenue change by discount depth for both lift estimates.
 
     Args:
-        curves (pandas.DataFrame): Output of ``profit_curves``.
+        curves (pandas.DataFrame): Output of ``revenue_curves``.
         fits (dict): Output of ``fit_lift_models``.
-        margin (float): Gross margin the curves assume.
         path (pathlib.Path): Output PNG path.
 
     Returns:
@@ -344,14 +320,14 @@ def plot_profit(curves, fits, margin, path):
     ax.annotate("Full price", (0, 0), xytext=(8, 8), textcoords="offset points",
                 fontsize=8.5, color=cs.INK_SECONDARY)
     ax.set_xlim(-0.8, 25.8)
-    ax.set_ylim(-100, 50)
+    ax.set_ylim(-40, 60)
     ax.set_xticks([0, 5, 10, 15, 20, 25], ["0%", "5%", "10%", "15%", "20%", "25%"])
     ax.set_xlabel("Discount on the order line (Northwind only uses 5% to 25%)")
-    ax.set_ylabel("Gross profit vs. full price (%)")
-    ax.set_title("Only a 5% discount can pay for itself, and only on the generous estimate",
+    ax.set_ylabel("Revenue per line vs. full price (%)")
+    ax.set_title("Each deeper discount gives back revenue that extra volume doesn't replace",
                  pad=24)
-    ax.text(0, 1.025, f"Assumes a {margin:.0%} gross margin at list price. "
-            "Lines: estimated effect; bands: 95% interval.",
+    ax.text(0, 1.025, "Revenue = lift x (1 - discount). Lines: estimated effect; "
+            "bands: 95% interval.",
             transform=ax.transAxes, fontsize=8.5, color=cs.INK_SECONDARY)
     ax.legend(loc="lower left")
     cs.save(fig, path)
@@ -363,9 +339,9 @@ def run(nw, fig_dir, out_dir):
     Args:
         nw (Northwind): Loaded data.
         fig_dir (pathlib.Path): Folder for ``q1_discount_lift.png``
-            and ``q1_profit_by_discount.png``.
+            and ``q1_revenue_by_discount.png``.
         out_dir (pathlib.Path): Folder for ``q1_discount_levels.csv``,
-            ``q1_lift_models.csv``, and ``q1_break_even.csv``.
+            ``q1_lift_models.csv``, and ``q1_revenue_curves.csv``.
 
     Returns:
         dict[str, Any]: Headline numbers for the webpage.
@@ -377,10 +353,10 @@ def run(nw, fig_dir, out_dir):
     df = model_data(li, nw.orders)
     fits = fit_lift_models(df)
     rng = np.random.default_rng(SEED)
-    curves = profit_curves(fits, BASE_MARGIN, rng)
-    plot_profit(curves, fits, BASE_MARGIN, fig_dir / "q1_profit_by_discount.png")
+    curves = revenue_curves(fits, rng)
+    plot_revenue(curves, fits, fig_dir / "q1_revenue_by_discount.png")
 
-    model_rows, be_rows = [], []
+    model_rows = []
     for name, fit in fits.items():
         se = np.sqrt(np.diag(fit["cov"]))
         model_rows.append({
@@ -392,37 +368,26 @@ def run(nw, fig_dir, out_dir):
             "P_AnyDiscount": fit["pvalues"]["AnyDiscount"],
             "LiftPerExtraPoint": np.exp(fit["params"][1]) - 1,
             "P_PerExtraPoint": fit["pvalues"]["DiscountPts"],
+            "RevenueEffectOnDiscountedLines": revenue_impact(df, fit["params"]),
         })
-        for margin in MARGINS:
-            be_rows.append({
-                "Model": name,
-                "Margin": margin,
-                "BreakEvenDiscountPts": break_even_discount(fit["params"], margin),
-                "ProfitImpactOnDiscountedLines": profit_impact(df, fit["params"], margin),
-            })
     models = pd.DataFrame(model_rows)
-    break_even = pd.DataFrame(be_rows)
     models.round(4).to_csv(out_dir / "q1_lift_models.csv", index=False)
-    break_even.round(2).to_csv(out_dir / "q1_break_even.csv", index=False)
-    curves.round(4).to_csv(out_dir / "q1_profit_curves.csv", index=False)
+    curves.round(4).to_csv(out_dir / "q1_revenue_curves.csv", index=False)
 
-    at_base = break_even[break_even["Margin"] == BASE_MARGIN].set_index("Model")
     by_level = curves.set_index("DiscountPts")
+    revenue_at_levels = {
+        name: {f"{lv}%": {stat: round(float(by_level.loc[lv, f"{name}_{stat}"]), 4)
+                          for stat in ["est", "low", "high"]} for lv in LEVEL_PTS}
+        for name in fits
+    }
 
     over, savings = cap_scenario(nw.lines)
     discounted = li[li["Discount"] > 0]
     orders_with_discount = (nw.orders["DiscountValue"] > 0).mean()
     return {
         "lift_models": models.round(4).to_dict(orient="records"),
-        "assumed_margin": BASE_MARGIN,
-        "break_even_pts_at_base_margin": at_base["BreakEvenDiscountPts"].to_dict(),
-        "profit_impact_at_base_margin": at_base["ProfitImpactOnDiscountedLines"].round(2).to_dict(),
-        "profit_change_at_levels_across": {
-            f"{lv}%": round(float(by_level.loc[lv, "across_est"]), 4) for lv in [5, 10, 15, 20, 25]
-        },
-        "profit_change_at_levels_within": {
-            f"{lv}%": round(float(by_level.loc[lv, "within_est"]), 4) for lv in [5, 10, 15, 20, 25]
-        },
+        "revenue_change_at_levels": revenue_at_levels,
+        "standard_discount_lines": int(df["AnyDiscount"].sum()),
         "discount_lines": int(len(discounted)),
         "discount_line_share": round(len(discounted) / len(li), 4),
         "orders_with_any_discount_share": round(float(orders_with_discount), 4),

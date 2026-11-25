@@ -20,7 +20,8 @@
         "LiftAnyDiscount_CI_High": 0.4723,
         "P_AnyDiscount": 0.0048,
         "LiftPerExtraPoint": 0.0034,
-        "P_PerExtraPoint": 0.5031
+        "P_PerExtraPoint": 0.5031,
+        "RevenueEffectOnDiscountedLines": 57419.6339
       },
       {
         "Model": "within",
@@ -30,32 +31,67 @@
         "LiftAnyDiscount_CI_High": 0.217,
         "P_AnyDiscount": 0.4397,
         "LiftPerExtraPoint": -0.0002,
-        "P_PerExtraPoint": 0.9636
+        "P_PerExtraPoint": 0.9636,
+        "RevenueEffectOnDiscountedLines": -57695.8893
       }
     ],
-    "assumed_margin": 0.3,
-    "break_even_pts_at_base_margin": {
-      "across": 6.6,
-      "within": 0.0
+    "revenue_change_at_levels": {
+      "across": {
+        "5%": {
+          "est": 0.2138,
+          "low": 0.0774,
+          "high": 0.366
+        },
+        "10%": {
+          "est": 0.1693,
+          "low": 0.0697,
+          "high": 0.2814
+        },
+        "15%": {
+          "est": 0.123,
+          "low": 0.0344,
+          "high": 0.2222
+        },
+        "20%": {
+          "est": 0.0748,
+          "low": -0.0306,
+          "high": 0.1947
+        },
+        "25%": {
+          "est": 0.0246,
+          "low": -0.1116,
+          "high": 0.1805
+        }
+      },
+      "within": {
+        "5%": {
+          "est": 0.0033,
+          "low": -0.0979,
+          "high": 0.1132
+        },
+        "10%": {
+          "est": -0.0505,
+          "low": -0.1231,
+          "high": 0.0281
+        },
+        "15%": {
+          "est": -0.1041,
+          "low": -0.1645,
+          "high": -0.0386
+        },
+        "20%": {
+          "est": -0.1576,
+          "low": -0.2253,
+          "high": -0.0827
+        },
+        "25%": {
+          "est": -0.211,
+          "low": -0.2952,
+          "high": -0.1178
+        }
+      }
     },
-    "profit_impact_at_base_margin": {
-      "across": -44831.19,
-      "within": -79365.85
-    },
-    "profit_change_at_levels_across": {
-      "5%": 0.0647,
-      "10%": -0.1338,
-      "15%": -0.3394,
-      "20%": -0.5522,
-      "25%": -0.7723
-    },
-    "profit_change_at_levels_within": {
-      "5%": -0.1199,
-      "10%": -0.2966,
-      "15%": -0.473,
-      "20%": -0.649,
-      "25%": -0.8247
-    },
+    "standard_discount_lines": 830,
     "discount_lines": 838,
     "discount_line_share": 0.3889,
     "orders_with_any_discount_share": 0.4578,

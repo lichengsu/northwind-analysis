@@ -2,7 +2,7 @@
 
 Analysis code for 15.561 Homework 3. It answers three business questions about Northwind Traders (July 1996 – May 1998) from the course's Northwind dataset:
 
-1. **Discounts:** how much extra volume does a discount buy, and is it worth the margin it costs?
+1. **Discounts:** how much extra volume does a discount buy, and does it make up for the lower price?
 2. **Shipping:** what drives late shipments, and is Federal Shipping significantly better than the other shippers?
 3. **Sales offices:** why does London sell less than Seattle, and are the discounts reps give justified?
 
@@ -35,9 +35,8 @@ Results are deterministic. The bootstrap intervals and simulation bands in Quest
 | Webpage item | Produced by | Output file |
 |---|---|---|
 | Q1 lift-by-level chart | `analysis/q1_discounts.py` | `docs/figures/q1_discount_lift.png`, `outputs/q1_discount_levels.csv` |
-| Q1 lift regression table | `analysis/q1_discounts.py` | `outputs/q1_lift_models.csv` |
-| Q1 profit/loss chart and table | `analysis/q1_discounts.py` | `docs/figures/q1_profit_by_discount.png`, `outputs/q1_profit_curves.csv` |
-| Q1 break-even and total profit effect | `analysis/q1_discounts.py` | `outputs/q1_break_even.csv` |
+| Q1 lift regression table and total revenue effect | `analysis/q1_discounts.py` | `outputs/q1_lift_models.csv` |
+| Q1 revenue chart and table | `analysis/q1_discounts.py` | `docs/figures/q1_revenue_by_discount.png`, `outputs/q1_revenue_curves.csv` |
 | Q2 late rate by promised window | `analysis/q2_shipping.py` | `docs/figures/q2_late_by_promise.png`, `outputs/q2_by_promised_window.csv` |
 | Q2 dispatch-time histogram | `analysis/q2_shipping.py` | `docs/figures/q2_dispatch_times.png` |
 | Q2 shipper comparison chart | `analysis/q2_shipping.py` | `docs/figures/q2_shipper_comparison.png`, `outputs/q2_by_shipper.csv` |
@@ -55,7 +54,7 @@ data/                 Northwind Database.xlsx (course dataset, unmodified)
 analysis/
   load_data.py        Loads the sheets, computes revenue and shipping fields, runs sanity checks
   chart_style.py      Shared matplotlib style and colors
-  q1_discounts.py     Question 1: lift by discount level, lift regressions, profit/loss
+  q1_discounts.py     Question 1: lift by discount level, lift regressions, revenue effect
   q2_shipping.py      Question 2: late rates, dispatch times, shipper significance tests
   q3_sales_reps.py    Question 3: office gap, discounts by customer size, employee table
 run_all.py            Runs everything and writes figures, tables, and key_numbers.json
@@ -69,7 +68,7 @@ outputs/              CSV tables and key_numbers.json
 - **Net revenue** = `UnitPrice × Quantity × (1 − Discount)` from the Orders Details sheet. It uses the price paid on the order, not the current list price in the Product sheet.
 - **Discount** values are stored as single-precision floats (0.05 reads as 0.0500000007), so they are rounded to two decimals on load.
 - **Relative quantity** = a line's quantity ÷ the same product's median quantity on full-price lines. The Q1 regressions use its logarithm, with standard errors clustered by order. The "same customer" model adds customer fixed effects.
-- **Gross margin is assumed** to be 30% at list price, with 20% and 40% as alternatives, because the dataset has no cost data. Profit change for a discounted line = `lift × (margin − discount) ÷ margin − 1`. Change `BASE_MARGIN` and `MARGINS` in `analysis/q1_discounts.py` to try other values.
+- **Revenue effect of a discount** (Q1) = `lift × (1 − discount) − 1`, relative to the same line at full price. The dataset has no cost data, so no margin or profit figures are estimated.
 - **Late** = shipped after `RequiredDate`. **Stalled** = more than 14 days from order to dispatch. The 21 orders with no `ShippedDate` (placed 8 Apr – 6 May 1998) are excluded from shipping metrics.
 - **Customer size quartiles** (Q3) rank customers by list value before discounts.
 - **Promised window** = `RequiredDate − OrderDate`. It is always 14, 28, or 42 days.

@@ -106,12 +106,12 @@
 
 <header>
   <p class="eyebrow">15.561 · Homework 3 · Northwind Traders, Jul 1996 – May 1998</p>
-  <h1>Where Northwind loses margin and misses deadlines</h1>
+  <h1>Where Northwind gives away revenue and misses deadlines</h1>
   <p class="lede">An analysis of 830 orders and $1.27M in net revenue for Northwind's sales manager. Three questions cover how
     the company discounts, ships, and sells, and each answer ends with a decision the manager can make.</p>
   <nav class="toc" aria-label="Questions">
     <a href="#discounts"><span class="num">Q1</span><span class="q">How much volume does a discount buy, and is it worth it?</span>
-      <span class="a">Not enough. Discounts of 10% or more lose profit under every estimate. For the same customer, discounts add no measurable volume.</span></a>
+      <span class="a">About +26% for any discount, no more for deeper ones, and only +6% for the same customer. 5% brings in more revenue than any deeper discount.</span></a>
     <a href="#shipping"><span class="num">Q2</span><span class="q">What drives late shipments, and is Federal Shipping better?</span>
       <span class="a">Rush promises drive lateness. Federal stalls half as many orders (p = 0.01), but its lower late rate could be chance.</span></a>
     <a href="#reps"><span class="num">Q3</span><span class="q">Why does London sell less, and are discounts justified?</span>
@@ -126,8 +126,8 @@
 
   <h3>Why it matters</h3>
   <p>Northwind gave away <strong>$88,666</strong> in discounts, 6.6% of the list value of everything it sold, and 46% of orders
-    had at least one discounted line. A discount pays for itself only if it brings enough extra volume to cover the margin given up.
-    To judge that, the manager needs two numbers: how much volume a discount actually buys, and the break-even point.</p>
+    had at least one discounted line. A discount only grows revenue if the extra volume it brings outweighs the lower price.
+    To judge that, the manager needs to know how much volume each discount level actually buys.</p>
 
   <h3>Approach</h3>
   <ul>
@@ -143,9 +143,10 @@
           anyway.</li>
       </ul>
       Standard errors allow for lines on the same order being related.</li>
-    <li><strong>Profit and loss.</strong> Northwind's data has no product costs, so the analysis <strong>assumes a 30% gross margin
-      at list price</strong>, with 20% and 40% shown as alternatives. For a line with list price <em>p</em>, margin <em>m</em>, and
-      discount <em>d</em>, gross profit relative to full price is <code>lift × (m − d) ÷ m − 1</code>.</li>
+    <li><strong>Revenue gained or lost.</strong> A line sold at discount <em>d</em> brings in <code>lift × (1 − d)</code> times
+      what it would have at full price. This uses only the order data, with no assumption about costs. A discount that loses revenue
+      also loses profit, because the extra units still cost something to supply. A discount that gains revenue may or may not gain
+      profit; that depends on costs Northwind's data doesn't include.</li>
   </ul>
 
   <figure>
@@ -155,43 +156,35 @@
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Estimate</th><th>Lift from any discount (95% CI)</th><th>p</th><th>Extra lift per added point</th><th>p</th></tr></thead>
+      <thead><tr><th>Estimate</th><th>Lift from any discount (95% CI)</th><th>p</th><th>Extra lift per added point</th><th>p</th><th>Revenue effect of all discounts</th></tr></thead>
       <tbody>
-        <tr><td>Pooled, all customers</td><td>+25.6% (+7.2% to +47.2%)</td><td>0.005</td><td>+0.3%</td><td>0.50</td></tr>
-        <tr><td>Same customer only</td><td class="hl">+5.7% (−8.2% to +21.7%)</td><td class="hl">0.44</td><td>−0.0%</td><td>0.96</td></tr>
+        <tr><td>Pooled, all customers</td><td>+25.6% (+7.2% to +47.2%)</td><td>0.005</td><td>+0.3%</td><td>0.50</td><td>+$57,420</td></tr>
+        <tr><td>Same customer only</td><td class="hl">+5.7% (−8.2% to +21.7%)</td><td class="hl">0.44</td><td>−0.0%</td><td>0.96</td><td class="hl">−$57,696</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="note">Table: <code>outputs/q1_lift_models.csv</code>. Lift is the change in quantity relative to the product's full-price median.</p>
+  <p class="note">Table: <code>outputs/q1_lift_models.csv</code>. Lift is the change in quantity relative to the product's full-price
+    median. Revenue effect = actual revenue on the 830 discounted lines minus what they would have brought in at full price on the
+    volume implied without the lift.</p>
 
   <figure>
-    <img src="figures/q1_profit_by_discount.png" alt="Line chart of gross profit change versus full price at discounts from 5% to 25%, assuming a 30% margin. The pooled estimate is +6% at 5%, crosses zero near 6.6%, and falls to -77% at 25%. The same-customer estimate is -12% at 5% and falls to -82% at 25%. Both bands are entirely below zero from 10% upward.">
+    <img src="figures/q1_revenue_by_discount.png" alt="Line chart of revenue per line versus full price at discounts from 5% to 25%. The pooled estimate falls from +21% at 5% to +2% at 25%, with its band crossing zero from about 18% upward. The same-customer estimate falls from 0% at 5% to -21% at 25%, with its band entirely below zero from about 13% upward.">
     <figcaption>Curves use the regression estimates; bands show the 95% range from 4,000 draws of the estimated coefficients.</figcaption>
   </figure>
 
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Gross profit vs. full price (30% margin)</th><th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th></tr></thead>
+      <thead><tr><th>Revenue per line vs. full price</th><th>5%</th><th>10%</th><th>15%</th><th>20%</th><th>25%</th></tr></thead>
       <tbody>
-        <tr><td>Pooled lift (+26%)</td><td class="good">+6%</td><td class="hl">−13%</td><td class="hl">−34%</td><td class="hl">−55%</td><td class="hl">−77%</td></tr>
-        <tr><td>Same-customer lift (+6%)</td><td class="hl">−12%</td><td class="hl">−30%</td><td class="hl">−47%</td><td class="hl">−65%</td><td class="hl">−82%</td></tr>
+        <tr><td>Pooled lift (+26%)</td><td class="good">+21%</td><td class="good">+17%</td><td class="good">+12%</td><td>+7%</td><td>+2%</td></tr>
+        <tr><td>&nbsp;&nbsp;95% interval</td><td>+8 to +37</td><td>+7 to +28</td><td>+3 to +22</td><td>−3 to +19</td><td>−11 to +18</td></tr>
+        <tr><td>Same-customer lift (+6%)</td><td>+0%</td><td>−5%</td><td class="hl">−10%</td><td class="hl">−16%</td><td class="hl">−21%</td></tr>
+        <tr><td>&nbsp;&nbsp;95% interval</td><td>−10 to +11</td><td>−12 to +3</td><td>−16 to −4</td><td>−23 to −8</td><td>−30 to −12</td></tr>
       </tbody>
     </table>
   </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Margin</th><th>Break-even (pooled)</th><th>Break-even (same cust.)</th><th>Profit effect (pooled)</th><th>Profit effect (same cust.)</th></tr></thead>
-      <tbody>
-        <tr><td>20%</td><td>below 5%</td><td>below 5%</td><td>−$59,438</td><td>−$82,462</td></tr>
-        <tr><td><strong>30%</strong></td><td><strong>6.6%</strong></td><td>below 5%</td><td><strong>−$44,831</strong></td><td>−$79,366</td></tr>
-        <tr><td>40%</td><td>9.1%</td><td>below 5%</td><td>−$30,224</td><td>−$76,270</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="note">Tables: <code>outputs/q1_profit_curves.csv</code>, <code>outputs/q1_break_even.csv</code>. "Below 5%" means even
-    Northwind's smallest discount loses profit; the data can't say anything about discounts under 5%. Profit effect = gross profit
-    on the 830 discounted lines minus what they would have earned at full price on the volume implied without the lift.</p>
+  <p class="note">Table: <code>outputs/q1_revenue_curves.csv</code>. Highlighted cells have a 95% interval entirely above (blue) or
+    below (orange) zero. The data can't say anything about discounts under 5%.</p>
 
   <div class="finding">
     <h3 style="margin-top:0">Main finding</h3>
@@ -200,19 +193,22 @@
     <p><strong>Even that +26% mostly isn't caused by the discount.</strong> Comparing each customer with themselves, the lift drops to
       +6% and is no longer statistically significant. Large customers both buy more and get discounts, which inflates the pooled
       number.</p>
-    <p><strong>It isn't worth it above 5%.</strong> At a 30% margin, every discount of 10% or more loses profit under both estimates,
-      with the full 95% band below zero. Only 5% can break even, and only if the generous pooled lift is real. In total, discounts cost
-      an estimated <strong>$45K–$79K in gross profit</strong> over 22 months.</p>
+    <p><strong>Deeper discounts give back revenue that volume doesn't replace.</strong> Under both estimates, every 5 extra points of
+      discount lowers revenue per line by about 5 points, because the price falls while volume stays the same. A 5% discount brings in
+      more revenue than any deeper discount. On the more credible same-customer comparison, discounts of 15% and above
+      <strong>lose revenue outright</strong> (10–21% per line, intervals below zero), so they lose profit too, whatever the costs.
+      Whether discounting as a whole paid off depends on which estimate is right: +$57K pooled versus −$58K for the same customer.</p>
   </div>
 
   <h3>Business implication</h3>
   <ul>
     <li><strong>Make 5% the most a rep can give without sign-off.</strong> Above that, require manager approval and a volume
-      commitment in return. Today 15–25% discounts make up 80% of all discount dollars.</li>
+      commitment in return. Today 15–25% discounts make up 80% of all discount dollars, and that is exactly the range where revenue
+      is lost.</li>
     <li><strong>Stop treating discounts as a volume lever.</strong> The evidence says they mostly go to customers who would have bought
       anyway (see Q3). If they are meant to reward loyalty, make that explicit with a volume-tier price list.</li>
-    <li><strong>Get real cost data.</strong> The break-even point moves with margin, from below 5% at 20% margin to 9% at 40% margin,
-      and Finance can pin it down. No margin up to 40% makes 15% or more profitable.</li>
+    <li><strong>Test before going further.</strong> Offering 5% vs. full price to comparable accounts for one quarter would show whether
+      the +26% or the +6% lift is the real one, and so whether even 5% is worth keeping.</li>
   </ul>
   <p class="note">Caveat: this is observational data, not an experiment. The same-customer estimate removes differences
     <em>between</em> customers, but not reasons a customer might get a discount on an unusually large order. Any remaining bias of that
@@ -369,8 +365,8 @@
     <p><strong>The discount–sales correlation is real, but it runs from size to discount.</strong> The largest quarter of customers get a 7.4%
       discount rate and <strong>75% of all discount dollars</strong>; the smallest quarter get 0.4% (rank correlation 0.68, p &lt; 0.001).
       That fits volume pricing: big accounts are rewarded for being big. But Q1 shows that discounts don't make the <em>same</em> customer buy
-      measurably more (+6%, p = 0.44). So discounts are justified as a reward for volume at most, not as a way to generate it, and at a 30%
-      margin they cost more than they earn.</p>
+      measurably more (+6%, p = 0.44). So discounts are justified as a reward for volume at most, not as a way to generate it, and at
+      15% and above they lose revenue for the same customer.</p>
     <p><strong>London's extra discounting isn't justified.</strong> For the 77 customers who buy from both offices, London's average discount
       rate is 5.8% against Seattle's 4.3% (paired p = 0.036), with no larger orders in return. Across the nine individuals, discount rate
       and revenue are not significantly related (rank correlation −0.38, p = 0.31; nine people is too few to tell).</p>
@@ -401,8 +397,8 @@
       658 lines because prices rose over time.</li>
     <li><strong>Discounts</strong> are stored as imprecise floats (0.05 reads as 0.0500000007) and are rounded to whole
       percents. This changes total revenue by less than one cent.</li>
-    <li><strong>Gross margin is assumed</strong> (30%, with 20% and 40% shown) because the dataset has no product costs. Every profit figure
-      depends on this assumption, and the break-even table shows how much.</li>
+    <li><strong>No cost data:</strong> the dataset has no product costs, so the page measures discounts by revenue, not profit, and
+      makes no margin assumption.</li>
     <li><strong>Statistics:</strong> OLS with order-clustered standard errors and customer fixed effects (Q1); chi-square, Fisher exact,
       logistic regression, Mann-Whitney, and Kruskal-Wallis tests (Q2); Spearman rank correlation, Mann-Whitney, and Wilcoxon signed-rank
       tests (Q3). Random draws use a fixed seed (561), so every figure reproduces exactly.</li>
